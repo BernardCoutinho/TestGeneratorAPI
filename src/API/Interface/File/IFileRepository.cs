@@ -7,5 +7,7 @@ namespace TestGeneratorAPI.src.API.Interface
     {
         Task<IEnumerable<File>> GetFilesByBatchProcessIdAsync(int batchProcessId);
         Task<IEnumerable<File>> GetFilesByUserIdAsync(int userId);
+
+        Task<IEnumerable<File>> AddRangeAsync(List<File> files);
     }
 }

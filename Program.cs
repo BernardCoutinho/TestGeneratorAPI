@@ -7,7 +7,6 @@ using System.Text;
 using TestGeneratorAPI.src.API.Base.Context;
 using TestGeneratorAPI.src.API.Infrastructure.Middlewares;
 using TestGeneratorAPI.src.API.Interface.Login;
-using TestGeneratorAPI.src.API.Interface.Task;
 using TestGeneratorAPI.src.API.Interface;
 using TestGeneratorAPI.src.API.Model;
 using TestGeneratorAPI.src.API.Repository;
@@ -24,6 +23,8 @@ var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ILoginService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IBatchProcessService, BatchProcessService>();
+builder.Services.AddScoped<FileProcessingService, FileProcessingService>();
 
 builder.Services.AddScoped<IFileRepository, FileRepository>();
 builder.Services.AddScoped<IBatchProcessRepository, BatchProcessRepository>();
@@ -39,6 +40,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 // HTTP ContextAcessor
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
 
 // Configuração do banco de dados SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

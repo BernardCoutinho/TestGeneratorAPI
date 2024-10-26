@@ -67,5 +67,11 @@ namespace TestGeneratorAPI.src.API.Repository
             return await _context.Files.Where(f => f.UserId == userId).ToListAsync();
         }
 
+        public async Task<IEnumerable<File>> AddRangeAsync(List<File> files)
+        {
+            await _context.Files.AddRangeAsync(files);
+            await _context.SaveChangesAsync();
+            return files;
+        }
     }
 }

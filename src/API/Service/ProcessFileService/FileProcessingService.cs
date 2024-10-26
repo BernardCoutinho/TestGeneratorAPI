@@ -1,18 +1,15 @@
-﻿using System.Net.Http.Headers;
-using TestGeneratorAPI.src.API.Enum;
+﻿using TestGeneratorAPI.src.API.Enum;
 using TestGeneratorAPI.src.API.Interface;
 using TestGeneratorAPI.src.API.Model;
+using System.Net.Http.Headers;
 using File = TestGeneratorAPI.src.API.Model.File;
 
-
-public class FileProcessingService : BackgroundService
+public class FileProcessingService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IFileRepository _fileRepository;
     private readonly IBatchProcessRepository _batchRepository;
     private readonly Queue<(IFormFile formFile, File fileEntry, int batchId)> _processingQueue = new Queue<(IFormFile, File, int)>();
-
-    private readonly static string URL_API = "";
 
     public FileProcessingService(
         IHttpClientFactory httpClientFactory,
@@ -24,33 +21,56 @@ public class FileProcessingService : BackgroundService
         _batchRepository = batchRepository;
     }
 
-    // Adiciona arquivos à fila para processamento
-    public void StartProcessingFilesAsync(List<IFormFile> files, List<File> fileEntries, int batchId)
+    // Método principal para processar arquivos para um usuário
+    public async Task ProcessFilesForUserAsync(List<IFormFile> files, int userId)
     {
-        for (int i = 0; i < files.Count; i++)
+        // Verifica se o usuário já possui um BatchProcess ativo
+        var existingBatch = await _batchRepository.GetActiveBatchByUserIdAsync(userId);
+        if (existingBatch != null)
+            throw new InvalidOperationException("Você já possui um batch em processamento.");
+
+        // Cria o BatchProcess com status inicial Active
+        var batch = new BatchProcess
         {
-            _processingQueue.Enqueue((files[i], fileEntries[i], batchId));
+            UserId = userId,
+            StartTime = DateTime.UtcNow,
+            Status = BatchStatus.Active
+        };
+        await _batchRepository.AddAsync(batch);
+
+        // Cria os registros de arquivos e enfileira para processamento
+        var fileEntries = new List<File>();
+        foreach (var file in files)
+        {
+            var fileEntry = new File
+            {
+                FileName = file.FileName,
+                FileType = file.ContentType,
+                Status = FileStatus.Processing,
+                BatchProcessId = batch.Id
+            };
+            fileEntries.Add(fileEntry);
+
+            // Adiciona à fila de processamento
+            _processingQueue.Enqueue((file, fileEntry, batch.Id));
+        }
+       _ = await _fileRepository.AddRangeAsync(fileEntries);
+
+        // Inicia o processamento da fila
+        _ = ProcessQueueAsync();
+    }
+
+    // Processa a fila de arquivos
+    private async Task ProcessQueueAsync()
+    {
+        while (_processingQueue.Count > 0)
+        {
+            var (formFile, fileEntry, batchId) = _processingQueue.Dequeue();
+            await ProcessFileAsync(formFile, fileEntry, batchId);
         }
     }
 
-    // Método de execução do serviço em segundo plano
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            if (_processingQueue.Count > 0)
-            {
-                var (formFile, fileEntry, batchId) = _processingQueue.Dequeue();
-                await ProcessFileAsync(formFile, fileEntry, batchId);
-            }
-            else
-            {
-                await Task.Delay(1000, stoppingToken); // Aguarda um segundo antes de verificar novamente
-            }
-        }
-    }
-
-    // Método para processar cada arquivo
+    // Método para processar cada arquivo individualmente
     private async Task ProcessFileAsync(IFormFile formFile, File fileEntry, int batchId)
     {
         var client = _httpClientFactory.CreateClient();
@@ -64,7 +84,7 @@ public class FileProcessingService : BackgroundService
             content.Add(fileContent, "file", formFile.FileName);
 
             // Envia o arquivo para a API externa
-            var response = await client.PostAsync(URL_API, content);
+            var response = await client.PostAsync("url_da_outra_api", content);
 
             // Atualiza o status e conteúdo do arquivo conforme o retorno da API
             if (response.IsSuccessStatusCode)
@@ -98,4 +118,3 @@ public class FileProcessingService : BackgroundService
         }
     }
 }
-
