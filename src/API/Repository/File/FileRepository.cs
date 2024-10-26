@@ -1,48 +1,71 @@
-﻿using TestGeneratorAPI.src.API.Interface;
+﻿using Microsoft.EntityFrameworkCore;
+using TestGeneratorAPI.src.API.Base.Context;
+using TestGeneratorAPI.src.API.Interface;
 using File = TestGeneratorAPI.src.API.Model.File;
 
 namespace TestGeneratorAPI.src.API.Repository
 {
     public class FileRepository : IFileRepository
     {
-        public Task<File> AddAsync(File entity)
+        private readonly PrincipalDbContext _context;
+
+        public FileRepository(PrincipalDbContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public Task<bool> DeleteAsync(File entity)
+        public async Task<File> AddAsync(File entity)
         {
-            throw new NotImplementedException();
+            _context.Files.Add(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
 
-        public Task<bool> DeleteByIdAsync(int id)
+        public async Task<bool> DeleteAsync(File entity)
         {
-            throw new NotImplementedException();
+            _context.Files.Remove(entity);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
-        public Task<IEnumerable<File>> GetAllAsync()
+        public async Task<bool> DeleteByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var file = await GetByIdAsync(id);
+            if (file is not null)
+            {
+                _context.Files.Remove(file);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
-        public Task<File?> GetByIdAsync(int id)
+        public async Task<IEnumerable<File>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Files.ToListAsync();
         }
 
-        public Task<IEnumerable<File>> GetFilesByBatchProcessIdAsync(int batchProcessId)
+        public async Task<File?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Files.FirstOrDefaultAsync(f => f.Id == id);
         }
 
-        public Task<IEnumerable<File>> GetFilesByUserIdAsync(int userId)
+        public async Task<File> UpdateAsync(File entity)
         {
-            throw new NotImplementedException();
+            _context.Files.Update(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
 
-        public Task<File> UpdateAsync(File entity)
+        public async Task<IEnumerable<File>> GetFilesByBatchProcessIdAsync(int batchProcessId)
         {
-            throw new NotImplementedException();
+            return await _context.Files.Where(f => f.BatchProcessId == batchProcessId).ToListAsync();
         }
+
+        public async Task<IEnumerable<File>> GetFilesByUserIdAsync(int userId)
+        {
+            return await _context.Files.Where(f => f.UserId == userId).ToListAsync();
+        }
+
     }
 }

@@ -7,6 +7,7 @@ namespace TestGeneratorAPI.src.API.Controller
 {
     [Authorize]
     [ApiController]
+    []
     [Route("api/[controller]")]
     public class FileController : ControllerBase
     {
@@ -19,7 +20,7 @@ namespace TestGeneratorAPI.src.API.Controller
         }
 
         [HttpPost("files/upload")]
-        public async Task<IActionResult> UploadFiles(IFormFileCollection files)
+        public async Task<IActionResult> UploadFiles([FromForm] IFormFileCollection files)
         {
             var userId = /* extrair ID do usuário, talvez de um token JWT */;
             var userHasActiveBatch = await _batchService.HasActiveBatch(userId);
@@ -27,7 +28,7 @@ namespace TestGeneratorAPI.src.API.Controller
             if (userHasActiveBatch)
                 return BadRequest("Você já possui um processamento em andamento.");
 
-            var batch = await _batchService.CreateNewBatch(userId, files);
+            var batch = await _batchService.CreateNewBatchAsync(userId, files);
             await _service.ProcessFilesAsync(batch);
 
             return Ok("Arquivos enviados para processamento.");

@@ -8,8 +8,8 @@ namespace TestGeneratorAPI.src.API.Model
         public string Username { get; set; }
         public string PasswordHash { get; set; }
         public string Email { get; set; }
+        public ICollection<BatchProcess> BatchProcesses { get; set; } = new List<BatchProcess>();
 
-        public ICollection<BatchProcess> BatchProcesses { get; set; }
-
+        public ICollection<File> Files { get; set; } = new List<File>();
     }
 }

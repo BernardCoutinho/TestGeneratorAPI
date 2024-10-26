@@ -17,11 +17,6 @@ namespace TestGeneratorAPI.src.API.Service
             _fileRepository = fileRepository;
         }
 
-        public Task<Model.BatchProcess> AddAsync(Model.BatchProcess entity)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<BatchProcess> CreateNewBatchAsync(int userId, List<IFormFile> files)
         {
             var batch = new BatchProcess
@@ -41,31 +36,23 @@ namespace TestGeneratorAPI.src.API.Service
             return batch;
         }
 
+        public async Task<bool> HasActiveBatchAsync(int userId)
+        => await _batchRepository.GetActiveBatchByUserIdAsync(userId) != null;
 
-        public Task<bool> DeleteAsync(Model.BatchProcess entity)
+        public async Task<BatchProcess> GetByIdAsync(int id) => await _batchRepository.GetByIdAsync(id);
+
+        public async Task<IEnumerable<BatchProcess>> GetAllAsync() => await _batchRepository.GetAllAsync();
+
+        public Task<BatchProcess> UpdateAsync(BatchProcess batch) => _batchRepository.UpdateAsync(batch);
+
+        public Task<bool> DeleteAsync(BatchProcess batch) => _batchRepository.DeleteAsync(batch);
+
+        public Task<BatchProcess> AddAsync(BatchProcess entity)
         {
             throw new NotImplementedException();
         }
 
         public Task<bool> DeleteByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Model.BatchProcess>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Model.BatchProcess?> GetByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> HasActiveBatchAsync(int userId)
-        => await _batchRepository.GetActiveBatchByUserIdAsync(userId) != null;
-
-        public Task<Model.BatchProcess> UpdateAsync(Model.BatchProcess entity)
         {
             throw new NotImplementedException();
         }

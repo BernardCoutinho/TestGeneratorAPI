@@ -14,22 +14,21 @@ namespace TestGeneratorAPI.src.API.Repository
             _context = context;
         }
 
-        // Busca um usuário por username ou email
         public async Task<User> GetByUsernameOrEmailAsync(string username, string email)
         {
-            return await _context.User.AsNoTracking().FirstOrDefaultAsync(u => u.Username.ToUpper() == username.ToUpper() || u.Email.ToUpper() == email.ToUpper());
+            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username.ToUpper() == username.ToUpper() || u.Email.ToUpper() == email.ToUpper());
         }
 
         public async Task<User> AddAsync(User entity)
         {
-            _context.User.Add(entity);
+            _context.Users.Add(entity);
             await _context.SaveChangesAsync();
             return entity;
         }
 
         public async Task<bool> DeleteAsync(User entity)
         {
-            _context.User.Remove(entity);
+            _context.Users.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -39,7 +38,7 @@ namespace TestGeneratorAPI.src.API.Repository
             var user = await GetByIdAsync(id);
             if (user is not null)
             {
-                _context.User.Remove(user);
+                _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -51,17 +50,17 @@ namespace TestGeneratorAPI.src.API.Repository
 
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            return await _context.User.AsNoTracking().ToListAsync();
+            return await _context.Users.AsNoTracking().ToListAsync();
         }
 
         public async Task<User?> GetByIdAsync(int id)
         {
-            return await _context.User.FirstOrDefaultAsync(user => user.Id == id);
+            return await _context.Users.FirstOrDefaultAsync(user => user.Id == id);
         }
 
         public async Task<User> UpdateAsync(User entity)
         {
-            _context.User.Update(entity);
+            _context.Users.Update(entity);
             await _context.SaveChangesAsync();
             return entity;
         }

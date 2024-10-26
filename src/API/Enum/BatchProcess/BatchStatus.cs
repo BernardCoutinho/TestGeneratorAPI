@@ -3,6 +3,7 @@
     public enum BatchStatus
     {
         Active,
-        Completed
+        Completed,
+        Failed
     }
 }
