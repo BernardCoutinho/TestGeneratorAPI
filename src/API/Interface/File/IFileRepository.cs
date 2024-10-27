@@ -1,13 +1,13 @@
 ﻿using TestGeneratorAPI.src.API.Base;
-using File = TestGeneratorAPI.src.API.Model.File;
+using FileAnswer = TestGeneratorAPI.src.API.Model.FileAnswer;
 
 namespace TestGeneratorAPI.src.API.Interface
 {
-    public interface IFileRepository : IRepository<File, int>
+    public interface IFileRepository : IRepository<FileAnswer, int>
     {
-        Task<IEnumerable<File>> GetFilesByBatchProcessIdAsync(int batchProcessId);
-        Task<IEnumerable<File>> GetFilesByUserIdAsync(int userId);
+        Task<IEnumerable<FileAnswer>> GetFilesByBatchProcessIdAsync(int batchProcessId);
+        Task<IEnumerable<FileAnswer>> GetFilesByUserIdAsync(int userId);
 
-        Task<IEnumerable<File>> AddRangeAsync(List<File> files);
+        Task<IEnumerable<FileAnswer>> AddRangeAsync(List<FileAnswer> files);
     }
 }

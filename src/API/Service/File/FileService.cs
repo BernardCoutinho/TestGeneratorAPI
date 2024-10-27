@@ -3,7 +3,7 @@ using TestGeneratorAPI.src.API.Base;
 using TestGeneratorAPI.src.API.Enum;
 using TestGeneratorAPI.src.API.Interface;
 using TestGeneratorAPI.src.API.Model;
-using File = TestGeneratorAPI.src.API.Model.File;
+using FileAnswer = TestGeneratorAPI.src.API.Model.FileAnswer;
 
 namespace TestGeneratorAPI.src.API.Service
 {
@@ -16,19 +16,19 @@ namespace TestGeneratorAPI.src.API.Service
             _fileRepository = fileRepository;
         }
 
-        public async Task<File> GetByIdAsync(int id) => await _fileRepository.GetByIdAsync(id);
+        public async Task<FileAnswer> GetByIdAsync(int id) => await _fileRepository.GetByIdAsync(id);
 
-        public async Task<IEnumerable<File>> GetAllAsync() => await _fileRepository.GetAllAsync();
+        public async Task<IEnumerable<FileAnswer>> GetAllAsync() => await _fileRepository.GetAllAsync();
 
-        public async Task<IEnumerable<File>> GetFilesByBatchProcessIdAsync(int batchProcessId)
+        public async Task<IEnumerable<FileAnswer>> GetFilesByBatchProcessIdAsync(int batchProcessId)
             => await _fileRepository.GetFilesByBatchProcessIdAsync(batchProcessId);
 
-        public async Task<IEnumerable<File>> GetFilesByUserIdAsync(int userId)
+        public async Task<IEnumerable<FileAnswer>> GetFilesByUserIdAsync(int userId)
             => await _fileRepository.GetFilesByUserIdAsync(userId);
 
-        public async Task<File> AddAsync(File file) => await _fileRepository.AddAsync(file);
+        public async Task<FileAnswer> AddAsync(FileAnswer file) => await _fileRepository.AddAsync(file);
 
-        public async Task<File> UpdateFileStatusAsync(int fileId, FileStatus status)
+        public async Task<FileAnswer> UpdateFileStatusAsync(int fileId, FileStatus status)
         {
             var file = await _fileRepository.GetByIdAsync(fileId);
             if (file == null)
@@ -40,9 +40,9 @@ namespace TestGeneratorAPI.src.API.Service
             return await _fileRepository.UpdateAsync(file);
         }
 
-        public async Task<File> UpdateAsync(File file) => await _fileRepository.UpdateAsync(file);
+        public async Task<FileAnswer> UpdateAsync(FileAnswer file) => await _fileRepository.UpdateAsync(file);
 
-        public async Task<bool> DeleteAsync(File file) => await _fileRepository.DeleteAsync(file);
+        public async Task<bool> DeleteAsync(FileAnswer file) => await _fileRepository.DeleteAsync(file);
         public async Task<bool> DeleteByIdAsync(int id) => await _fileRepository.DeleteByIdAsync(id);
     }
 }

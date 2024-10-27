@@ -1,7 +1,7 @@
 ﻿using TestGeneratorAPI.src.API.Enum;
 using TestGeneratorAPI.src.API.Interface;
 using TestGeneratorAPI.src.API.Model;
-using File = TestGeneratorAPI.src.API.Model.File;
+using File = TestGeneratorAPI.src.API.Model.FileAnswer;
 
 
 namespace TestGeneratorAPI.src.API.Service
@@ -19,21 +19,7 @@ namespace TestGeneratorAPI.src.API.Service
 
         public async Task<BatchProcess> CreateNewBatchAsync(int userId, List<IFormFile> files)
         {
-            var batch = new BatchProcess
-            {
-                UserId = userId,
-                StartTime = DateTime.UtcNow,
-                Status = BatchStatus.Active,
-                Files = files.Select(f => new File
-                {
-                    FileName = f.FileName,
-                    FileType = f.ContentType,
-                    Status = FileStatus.Pending
-                }).ToList()
-            };
-
-            await _batchRepository.AddAsync(batch);
-            return batch;
+            throw new NotImplementedException();
         }
 
         public async Task<bool> HasActiveBatchAsync(int userId)

@@ -19,7 +19,7 @@ namespace TestGeneratorAPI.src.API.Controller.Auth
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            
+            Console.WriteLine("Passou aqui");
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);

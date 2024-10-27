@@ -14,6 +14,11 @@ using TestGeneratorAPI.src.API.Service.Auth;
 using TestGeneratorAPI.src.API.Service;
 using TestGeneratorAPI.src.API.Base;
 using TestGeneratorAPI.src.API.Repository.BatchRepository;
+using TestGeneratorAPI.src.API.Service.File;
+using TestGeneratorAPI.src.API.Repository.FolderRepository;
+using TestGeneratorAPI.src.API.Repository.File;
+using TestGeneratorAPI.src.API.Helper;
+using TestGeneratorAPI.src.API.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,11 +30,19 @@ builder.Services.AddScoped<ILoginService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBatchProcessService, BatchProcessService>();
 builder.Services.AddScoped<FileProcessingService, FileProcessingService>();
+builder.Services.AddScoped<FileContextService, FileContextService>();
+builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<FolderService, FolderService>();
 
+builder.Services.AddScoped<FolderRepository, FolderRepository>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
 builder.Services.AddScoped<IBatchProcessRepository, BatchProcessRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<FolderRepository, FolderRepository>();
+builder.Services.AddScoped<FileContextRepository, FileContextRepository>();
 //builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+
+builder.Services.AddScoped<FileTransactionHelper, FileTransactionHelper>();
 
 builder.Services.AddControllers();
 
@@ -46,7 +59,8 @@ builder.Services.AddHttpClient();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<PrincipalDbContext>(options =>
-    options.UseSqlServer(connectionString));
+options.UseSqlServer(connectionString));
+//options.UseInMemoryDatabase("InMemoryDb"));
 
 // Configuração CORS
 builder.Services.AddCors(options =>
@@ -65,9 +79,10 @@ builder.Services.AddSwaggerGen(opt =>
 {
     opt.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Task Management Api",
+        Title = "Auto Master Api",
         Version = "v1"
     });
+    opt.OperationFilter<SwaggerFileOperationFilter>();
 
     opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
@@ -131,7 +146,7 @@ try
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseCors("AllowAll");
-    app.UseHttpsRedirection();
+    //app.UseHttpsRedirection();
 
     app.UseMiddleware<UserIdMiddleware>();
 
@@ -140,6 +155,7 @@ try
 
     app.MapControllers();
 
+    app.UseStaticFiles();
     app.Run();
 }
 catch (HostAbortedException ex)

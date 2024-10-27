@@ -25,6 +25,7 @@
 
         public async Task<string> Authenticate(string usernameOrEmail, string password)
         {
+            Console.WriteLine("PAssou no login");
             User user = await _userRepository.GetByUsernameOrEmailAsync(usernameOrEmail, usernameOrEmail);
 
             if (user == null)

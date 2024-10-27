@@ -1,6 +1,6 @@
 ﻿using TestGeneratorAPI.src.API.Model;
 using Microsoft.EntityFrameworkCore;
-using File = TestGeneratorAPI.src.API.Model.File;
+using FileAnswer = TestGeneratorAPI.src.API.Model.FileAnswer;
 //using TaskItem = TestGeneratorAPI.src.API.Model.TaskItem;
 
 namespace TestGeneratorAPI.src.API.Base.Context
@@ -12,82 +12,171 @@ namespace TestGeneratorAPI.src.API.Base.Context
         }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<File> Files { get; set; }
+        public DbSet<FileAnswer> FileAnswer { get; set; }
+        public DbSet<Folder> Folder { get; set; }
+        public DbSet<FileContext> FileContext { get; set; }
         public DbSet<BatchProcess> BatchProcesses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<FileContext>()
+            .ToTable("FileContexts")
+            .HasKey(fc => fc.Id);
 
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.ToTable("User");
+            modelBuilder.Entity<FileContext>()
+                .Property(fc => fc.Id)
+                .ValueGeneratedOnAdd();
 
-                entity.HasKey(e => e.Id);
-               
-                entity.Property(e => e.Id)
-                      .ValueGeneratedOnAdd();
-                
-                entity.Property(e => e.Username)
-                      .IsRequired()
-                      .HasMaxLength(100);
-               
-                entity.Property(e => e.Email)
-                      .IsRequired()
-                      .HasMaxLength(150);
+            modelBuilder.Entity<FileContext>()
+                .Property(fc => fc.FileName)
+                .IsRequired()
+                .HasMaxLength(255);
 
-                entity.Property(e => e.PasswordHash)
-                      .IsRequired();
+            modelBuilder.Entity<FileContext>()
+                .Property(fc => fc.FileType)
+                .IsRequired()
+                .HasMaxLength(50);
 
-                entity.HasMany(u => u.BatchProcesses)
-                    .WithOne(b => b.User)
-                    .HasForeignKey(b => b.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<FileContext>()
+                .Property(fc => fc.Status)
+                .IsRequired();
 
-                
-                entity.HasMany(u => u.Files)
-                    .WithOne(f => f.User)
-                    .HasForeignKey(f => f.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.Entity<FileContext>()
+                .Property(fc => fc.Content)
+                .IsRequired();
 
-            modelBuilder.Entity<File>(entity =>
-            {
-                entity.HasKey(f => f.Id);
-                entity.Property(f => f.FileName)
-                    .IsRequired()
-                    .HasMaxLength(255);
-                entity.Property(f => f.FileType)
-                    .IsRequired()
-                    .HasMaxLength(50);
+            modelBuilder.Entity<FileContext>()
+                .HasOne(fc => fc.User)
+                .WithMany(u => u.FilesContext)
+                .HasForeignKey(fc => fc.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
-                // Relacionamento N:1 com User
-                entity.HasOne(f => f.User)
-                    .WithMany(u => u.Files)
-                    .HasForeignKey(f => f.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<FileContext>()
+                .HasOne(fc => fc.Folder)
+                .WithMany(f => f.FilesContext)
+                .HasForeignKey(fc => fc.FolderId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-                // Relacionamento N:1 com BatchProcess
-                entity.HasOne(f => f.BatchProcess)
-                    .WithMany(b => b.Files)
-                    .HasForeignKey(f => f.BatchProcessId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            //File Answer
+            modelBuilder.Entity<FileAnswer>()
+                .ToTable("FileAnswers")
+                .HasKey(fa => fa.Id);
 
-            // Configurações para BatchProcess
-            modelBuilder.Entity<BatchProcess>(entity =>
-            {
-                entity.HasKey(b => b.Id);
-                entity.Property(b => b.StartTime)
-                    .IsRequired();
-                entity.Property(b => b.Status)
-                    .IsRequired();
+            modelBuilder.Entity<FileAnswer>()
+                .Property(fa => fa.Id)
+                .ValueGeneratedOnAdd();
 
-                // Relacionamento N:1 com User
-                entity.HasOne(b => b.User)
-                    .WithMany(u => u.BatchProcesses)
-                    .HasForeignKey(b => b.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.Entity<FileAnswer>()
+                .Property(fa => fa.FileName)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            modelBuilder.Entity<FileAnswer>()
+                .Property(fa => fa.FileType)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<FileAnswer>()
+                .Property(fa => fa.Status)
+                .IsRequired();
+
+            modelBuilder.Entity<FileAnswer>()
+                .Property(fa => fa.Content)
+                .IsRequired();
+
+            modelBuilder.Entity<FileAnswer>()
+                .Property(fa => fa.Question);
+
+            modelBuilder.Entity<FileAnswer>()
+                .HasOne(fa => fa.User)
+                .WithMany(u => u.Files)
+                .HasForeignKey(fa => fa.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FileAnswer>()
+                .HasOne(fa => fa.BatchProcess)
+                .WithMany(bp => bp.Files)
+                .HasForeignKey(fa => fa.BatchProcessId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+
+            // Folder Configuration
+            modelBuilder.Entity<Folder>()
+                .HasKey(f => f.Id);
+
+            modelBuilder.Entity<Folder>()
+                .Property(f => f.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Folder>()
+                .HasOne(f => f.ParentFolder)
+                .WithMany()
+                .HasForeignKey(f => f.ParentFolderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Folder>()
+                .Property(fa => fa.FolderName)
+                .IsRequired();
+
+            modelBuilder.Entity<Folder>()
+                .HasOne(f => f.User)
+                .WithMany(u => u.Folders)
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // BatchProcess Configuration
+            modelBuilder.Entity<BatchProcess>()
+                .HasKey(bp => bp.Id);
+
+            modelBuilder.Entity<BatchProcess>()
+                .Property(bp => bp.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<BatchProcess>()
+                .Property(bp => bp.Status)
+                .IsRequired();
+
+            modelBuilder.Entity<BatchProcess>()
+                .HasOne(bp => bp.User)
+                .WithMany(u => u.BatchProcesses)
+                .HasForeignKey(bp => bp.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // User Configuration
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.Id);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Username)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Email)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.PasswordHash)
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Files)
+                .WithOne(fa => fa.User)
+                .HasForeignKey(fa => fa.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.FilesContext)
+                .WithOne(fc => fc.User)
+                .HasForeignKey(fc => fc.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
+       
     }
 }

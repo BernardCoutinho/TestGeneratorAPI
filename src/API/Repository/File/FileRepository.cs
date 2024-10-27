@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TestGeneratorAPI.src.API.Base.Context;
 using TestGeneratorAPI.src.API.Interface;
-using File = TestGeneratorAPI.src.API.Model.File;
+using FileAnswer = TestGeneratorAPI.src.API.Model.FileAnswer;
 
 namespace TestGeneratorAPI.src.API.Repository
 {
@@ -14,16 +14,16 @@ namespace TestGeneratorAPI.src.API.Repository
             _context = context;
         }
 
-        public async Task<File> AddAsync(File entity)
+        public async Task<FileAnswer> AddAsync(FileAnswer entity)
         {
-            _context.Files.Add(entity);
+            _context.FileAnswer.Add(entity);
             await _context.SaveChangesAsync();
             return entity;
         }
 
-        public async Task<bool> DeleteAsync(File entity)
+        public async Task<bool> DeleteAsync(FileAnswer entity)
         {
-            _context.Files.Remove(entity);
+            _context.FileAnswer.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -33,43 +33,43 @@ namespace TestGeneratorAPI.src.API.Repository
             var file = await GetByIdAsync(id);
             if (file is not null)
             {
-                _context.Files.Remove(file);
+                _context.FileAnswer.Remove(file);
                 await _context.SaveChangesAsync();
                 return true;
             }
             return false;
         }
 
-        public async Task<IEnumerable<File>> GetAllAsync()
+        public async Task<IEnumerable<FileAnswer>> GetAllAsync()
         {
-            return await _context.Files.ToListAsync();
+            return await _context.FileAnswer.ToListAsync();
         }
 
-        public async Task<File?> GetByIdAsync(int id)
+        public async Task<FileAnswer?> GetByIdAsync(int id)
         {
-            return await _context.Files.FirstOrDefaultAsync(f => f.Id == id);
+            return await _context.FileAnswer.FirstOrDefaultAsync(f => f.Id == id);
         }
 
-        public async Task<File> UpdateAsync(File entity)
+        public async Task<FileAnswer> UpdateAsync(FileAnswer entity)
         {
-            _context.Files.Update(entity);
+            _context.FileAnswer.Update(entity);
             await _context.SaveChangesAsync();
             return entity;
         }
 
-        public async Task<IEnumerable<File>> GetFilesByBatchProcessIdAsync(int batchProcessId)
+        public async Task<IEnumerable<FileAnswer>> GetFilesByBatchProcessIdAsync(int batchProcessId)
         {
-            return await _context.Files.Where(f => f.BatchProcessId == batchProcessId).ToListAsync();
+            return await _context.FileAnswer.Where(f => f.BatchProcessId == batchProcessId).ToListAsync();
         }
 
-        public async Task<IEnumerable<File>> GetFilesByUserIdAsync(int userId)
+        public async Task<IEnumerable<FileAnswer>> GetFilesByUserIdAsync(int userId)
         {
-            return await _context.Files.Where(f => f.UserId == userId).ToListAsync();
+            return await _context.FileAnswer.Where(f => f.UserId == userId).ToListAsync();
         }
 
-        public async Task<IEnumerable<File>> AddRangeAsync(List<File> files)
+        public async Task<IEnumerable<FileAnswer>> AddRangeAsync(List<FileAnswer> files)
         {
-            await _context.Files.AddRangeAsync(files);
+            await _context.FileAnswer.AddRangeAsync(files);
             await _context.SaveChangesAsync();
             return files;
         }

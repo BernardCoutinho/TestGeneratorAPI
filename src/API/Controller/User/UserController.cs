@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using TestGeneratorAPI.src.API.Model;
 
-namespace TaskManagement.src.API.Controller
+namespace TestGeneratorAPI.src.API.Controller
 {
     [ApiController]
     [Route("api/[controller]")]

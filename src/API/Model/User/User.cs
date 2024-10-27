@@ -10,6 +10,11 @@ namespace TestGeneratorAPI.src.API.Model
         public string Email { get; set; }
         public ICollection<BatchProcess> BatchProcesses { get; set; } = new List<BatchProcess>();
 
-        public ICollection<File> Files { get; set; } = new List<File>();
+        public ICollection<FileAnswer> Files { get; set; } = new List<FileAnswer>();
+
+        public ICollection<FileContext> FilesContext { get; set; } = new List<FileContext>();
+        public ICollection<Folder> Folders { get; set; } = new List<Folder>();
+
+
     }
 }

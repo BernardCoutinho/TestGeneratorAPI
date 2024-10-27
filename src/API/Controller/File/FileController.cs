@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TestGeneratorAPI.src.API.Enum;
 using TestGeneratorAPI.src.API.Interface;
+using TestGeneratorAPI.src.API.Interface.Login;
 using TestGeneratorAPI.src.API.Model;
 using TestGeneratorAPI.src.API.Repository;
+using TestGeneratorAPI.src.API.Service;
+using TestGeneratorAPI.src.API.Service.File;
 
 
 namespace TestGeneratorAPI.src.API.Controller
@@ -14,25 +18,37 @@ namespace TestGeneratorAPI.src.API.Controller
     public class FileController : ControllerBase
     {
         private readonly IFileService _service;
+        private readonly FolderService _folderService;
+        private readonly FileContextService _fileContextService;
         private readonly FileProcessingService _fileProcessingService;
 
-        public FileController(IFileService service, FileProcessingService processingService)
+        public FileController(IFileService service, FileProcessingService processingService, FolderService folderService, FileContextService fileContextService)
         {   
             _service = service;
             _fileProcessingService = processingService;
+            _folderService = folderService;
+            _fileContextService = fileContextService;
         }
 
         //[HttpPost("files/upload")]
+        [Consumes("multipart/form-data")]
         [HttpPost("batch/create")]
-        public async Task<IActionResult> CreateBatch([FromForm] List<IFormFile> files, [FromQuery] int userId)
+        public async Task<IActionResult> CreateBatch(
+            [FromForm] List<int> fileIds,
+            [FromForm] List<IFormFile> images,
+            [FromForm] List<string> transcriptions,
+            [FromForm] string question,
+            [FromForm] string recomendation,
+            [FromForm] int userId)
         {
-            if (files == null || files.Count == 0)
+            if (fileIds == null || fileIds.Count == 0)
                 return BadRequest("Nenhum arquivo enviado.");
 
             try
             {
                 // Chama o serviço para iniciar o processamento
-                await _fileProcessingService.ProcessFilesForUserAsync(files, userId);
+                await _fileProcessingService.ProcessFilesForUserAsync(
+                    images, transcriptions, fileIds, question, recomendation, userId);
                 return Ok("Batch criado e processamento iniciado.");
             }
             catch (InvalidOperationException ex)
@@ -41,5 +57,80 @@ namespace TestGeneratorAPI.src.API.Controller
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPost("context/folder/register")]
+        public async Task<IActionResult> CreateFolder([FromBody] Folder folder)
+        {
+            Console.WriteLine("Passou aqui");
+            if(folder == null)
+            {
+                return BadRequest("Erro no arquivo.");
+            }
+
+            Folder folderCreated = await _folderService.CreateFolder(folder);
+
+            return Ok(new { Folder = folderCreated });
+        }
+
+        [HttpPut("context/folder/update")]
+        public async Task<IActionResult> UpdateFolder([FromBody] Folder folder)
+        {
+            Console.WriteLine("Passou aqui");
+            if (folder == null)
+            {
+                return BadRequest("Erro no arquivo.");
+            }
+
+            Folder folderCreated = await _folderService.UpdateAsync(folder);
+
+            return Ok(new { Folder = folderCreated });
+        }
+
+        [HttpDelete("context/folder/delete/{id}")]
+        public async Task<IActionResult> DeleteFolderTree( int id)
+        {
+
+            bool folderCreated = await _folderService.DeleteFolderTreeById(id);
+
+            return NoContent();
+        }
+
+
+        [HttpPost("context/file/create")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> CreateContextFile(
+            [FromForm] List<IFormFile> file, 
+            [FromForm] int folderId, 
+            [FromForm] int userId)
+        {
+
+            FileContext fileCreated = await _fileContextService.AddAsync(file.First(), folderId, userId);
+
+            return Ok(new { Folder = fileCreated });
+        }
+
+        [HttpDelete("context/file/delete/{id}")]
+        public async Task<IActionResult> DeleteFileById(int id)
+        {
+
+            bool fileDeleted = await _fileContextService.DeleteAsync(id);
+
+            return NoContent();
+        }
+
+        [HttpGet("context/folder/user/all/{id}")]
+        public async Task<IActionResult> UpdateFolder( int id)
+        {
+            Console.WriteLine("Passou aqui");
+            if (id == null)
+            {
+                return BadRequest("Informe o id de usuario.");
+            }
+
+            var folderCreated = await _fileProcessingService.GetUserFoldersAndFiles(id);
+
+            return Ok(new { Folder = folderCreated });
+        }
     }
+
 }

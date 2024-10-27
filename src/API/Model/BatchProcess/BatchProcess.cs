@@ -12,6 +12,6 @@ namespace TestGeneratorAPI.src.API.Model
         public int UserId { get; set; }
         public User User { get; set; }
 
-        public ICollection<File> Files { get; set; }
+        public ICollection<FileAnswer> Files { get; set; }
     }
 }
