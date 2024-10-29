@@ -8,11 +8,12 @@ using TestGeneratorAPI.src.API.Model;
 using TestGeneratorAPI.src.API.Repository;
 using TestGeneratorAPI.src.API.Service;
 using TestGeneratorAPI.src.API.Service.File;
+using TestGeneratorAPI.src.API.View.File;
 
 
 namespace TestGeneratorAPI.src.API.Controller
 {
-    [Authorize]
+    [AllowAnonymous]
     [ApiController]
     [Route("api/[controller]")]
     public class FileController : ControllerBase
@@ -48,7 +49,7 @@ namespace TestGeneratorAPI.src.API.Controller
             {
                 // Chama o serviço para iniciar o processamento
                 await _fileProcessingService.ProcessFilesForUserAsync(
-                    images, transcriptions, fileIds, question, recomendation, userId);
+                    images, fileIds, question, recomendation, userId);
                 return Ok("Batch criado e processamento iniciado.");
             }
             catch (InvalidOperationException ex)
@@ -59,13 +60,20 @@ namespace TestGeneratorAPI.src.API.Controller
         }
 
         [HttpPost("context/folder/register")]
-        public async Task<IActionResult> CreateFolder([FromBody] Folder folder)
+        public async Task<IActionResult> CreateFolder([FromBody] FolderRequestDto folderDto)
         {
             Console.WriteLine("Passou aqui");
-            if(folder == null)
+            if(folderDto == null)
             {
                 return BadRequest("Erro no arquivo.");
             }
+
+            var folder = new Folder
+            {
+                UserId = folderDto.UserId,
+                FolderName = folderDto.FolderName,
+                ParentFolderId = folderDto.ParentFolderId
+            };
 
             Folder folderCreated = await _folderService.CreateFolder(folder);
 
@@ -95,6 +103,11 @@ namespace TestGeneratorAPI.src.API.Controller
             return NoContent();
         }
 
+        [HttpGet("/ping")]
+        public string Ping()
+        {
+            return "true";
+        }
 
         [HttpPost("context/file/create")]
         [Consumes("multipart/form-data")]
@@ -119,17 +132,17 @@ namespace TestGeneratorAPI.src.API.Controller
         }
 
         [HttpGet("context/folder/user/all/{id}")]
-        public async Task<IActionResult> UpdateFolder( int id)
+        public async Task<FolderStructureResponse> UpdateFolder( int id)
         {
             Console.WriteLine("Passou aqui");
             if (id == null)
             {
-                return BadRequest("Informe o id de usuario.");
+                return null;
             }
 
-            var folderCreated = await _fileProcessingService.GetUserFoldersAndFiles(id);
-
-            return Ok(new { Folder = folderCreated });
+            FolderStructureResponse  folderCreated = await _fileProcessingService.GetUserFoldersAndFiles(id);
+            return folderCreated;
+          
         }
     }
 

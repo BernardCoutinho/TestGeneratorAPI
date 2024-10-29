@@ -12,8 +12,8 @@ using TestGeneratorAPI.src.API.Base.Context;
 namespace TestGeneratorAPI.Migrations
 {
     [DbContext(typeof(PrincipalDbContext))]
-    [Migration("20241027023051_updateAll")]
-    partial class updateAll
+    [Migration("20241027075736_updateAllnewA")]
+    partial class updateAllnewA
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,6 +65,9 @@ namespace TestGeneratorAPI.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Correction")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FileName")

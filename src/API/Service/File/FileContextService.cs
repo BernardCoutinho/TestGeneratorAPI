@@ -22,9 +22,11 @@ namespace TestGeneratorAPI.src.API.Service.File
 
         public async Task<FileContext> AddAsync(IFormFile file, int folderId, int userId) 
         {
+            Console.WriteLine("");
             FileContext context = new FileContext
             {
-                
+                UserId = userId,
+                FolderId = folderId,
                 FileName = file.FileName,
                 FileType = file.ContentType,
                 Content = await _fileTransactionHelper.SaveFileAsync(file, "contextos", "contexto")

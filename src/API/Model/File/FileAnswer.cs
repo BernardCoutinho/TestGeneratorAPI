@@ -8,5 +8,7 @@ namespace TestGeneratorAPI.src.API.Model
         public BatchProcess BatchProcess { get; set; }
         public string? Response { get; set; }
         public string? Question { get; internal set; }
+
+        public string? Correction { get; internal set; }
     }
 }

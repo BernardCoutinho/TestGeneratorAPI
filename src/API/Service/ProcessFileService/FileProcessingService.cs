@@ -13,6 +13,10 @@ using TestGeneratorAPI.src.API.Helper;
 using TestGeneratorAPI.src.API.View.File;
 using TestGeneratorAPI.src.API.Repository.FolderRepository;
 using TestGeneratorAPI.src.API.Repository.File;
+using Azure;
+using TestGeneratorAPI.src.API.Service.External;
+using TestGeneratorAPI.src.API.View.External;
+using Newtonsoft.Json;
 
 public class FileProcessingService
 {
@@ -22,28 +26,39 @@ public class FileProcessingService
     private readonly IBatchProcessRepository _batchRepository;
     private readonly FileTransactionHelper _fileTransactionHelper;
     private readonly Queue<FileAnswer> _processingQueue = new Queue<FileAnswer>();
+    private readonly ExternalApiService _externalApiService;
 
     public FileProcessingService(
         IHttpClientFactory httpClientFactory,
         IFileRepository fileRepository,
         IBatchProcessRepository batchRepository,
         FileTransactionHelper fileTransactionHelper,
-        FileContextRepository fileContextRepository)
+        FileContextRepository fileContextRepository,
+        ExternalApiService externalApiService)
     {
         _httpClientFactory = httpClientFactory;
         _fileRepository = fileRepository;
         _batchRepository = batchRepository;
         _fileTransactionHelper = fileTransactionHelper;
         _fileContextRepository = fileContextRepository;
+        _externalApiService = externalApiService;
     }
 
     // Método principal para processar arquivos para um usuário
-    public async Task ProcessFilesForUserAsync(List<IFormFile> images, List<string> transcriptions, List<int> filesIds, string question, string recomendation, int userId)
+    public async Task ProcessFilesForUserAsync(List<IFormFile> images, List<int> filesIds, string question, string recomendation, int userId)
     {
+        await _externalApiService.ClearContextAsync();
+
+        var response = await CreateContextExternalAPI(filesIds, userId);
+        if (response == null)
+        {
+            throw new Exception("Erro");
+        }
+
         // Verifica se o usuário já possui um BatchProcess ativo
         var existingBatch = await _batchRepository.GetActiveBatchByUserIdAsync(userId);
-        if (existingBatch != null)
-            throw new InvalidOperationException("Você já possui um batch em processamento.");
+        //if (existingBatch != null)
+        //    throw new InvalidOperationException("Você já possui um batch em processamento.");
 
         // Cria o BatchProcess com status inicial Active
         var batch = new BatchProcess
@@ -55,19 +70,22 @@ public class FileProcessingService
 
         await _batchRepository.AddAsync(batch);
 
+        //chamda pra AWS pra converter a imagem em texto
+
         // Cria os registros de arquivos e enfileira para processamento
         var fileEntries = new List<FileAnswer>();
-        for (var i = 0; i >= 0; i++)
+        foreach(var image in images)
         {
             var fileEntry = new FileAnswer
             {
-                FileName = images[i].FileName,
-                FileType = images[i].ContentType,
+                UserId = userId,
+                FileName = image.FileName,
+                FileType = image.ContentType,
                 Status = FileStatus.Processing,
                 BatchProcessId = batch.Id,
-                Response = transcriptions[i],
+                Response = "transcriptions[i],",
                 Question = question,
-                Content = await GenerateUrl(images[i]),
+                Content = await GenerateUrl(image),
             };
             fileEntries.Add(fileEntry);
 
@@ -76,18 +94,21 @@ public class FileProcessingService
         }
        _ = await _fileRepository.AddRangeAsync(fileEntries);
 
+
         // Inicia o processamento da fila
-        _ = ProcessQueueAsync(filesIds, batch.Id, recomendation);
+        _ = ProcessQueueAsync(batch.Id, recomendation);
     }
 
     // Processa a fila de arquivos
-    private async Task ProcessQueueAsync(List<int> filesIds, int batchId, string recomendation)
+    private async Task ProcessQueueAsync(int batchId, string recomendation)
     {
         // chamada para iniciar contexto
+        
+
         while (_processingQueue.Count > 0)
         {
             var fileEntry = _processingQueue.Dequeue();
-            await ProcessFileAsync(fileEntry);
+            await ProcessFileAsync(fileEntry, recomendation);
         }
 
         // Checa se todos os arquivos no batch foram processados
@@ -104,34 +125,25 @@ public class FileProcessingService
     }
 
     // Método para processar cada arquivo individualmente
-    private async Task ProcessFileAsync(FileAnswer fileEntry)
+    private async Task ProcessFileAsync(FileAnswer fileEntry, string recomendation)
     {
         var client = _httpClientFactory.CreateClient();
+
 
         try
         {
 
+            PredictRequest request= new PredictRequest
+            {
+                question = fileEntry.Question,
+                recommendation = recomendation,
+                response = fileEntry.Response
+            };
+
             // Envia o arquivo para a API externa
-            var json = JsonSerializer.Serialize(fileEntry);
+            var response = await _externalApiService.PredictAsync(request);
 
-            // Cria o conteúdo JSON para o corpo da requisição
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            //gravar question
-
-            var response = await client.PostAsync("url_da_outra_api", content);
-
-            // Atualiza o status e conteúdo do arquivo conforme o retorno da API
-            if (response.IsSuccessStatusCode)
-            {
-                fileEntry.Status = FileStatus.Processed;
-
-                fileEntry.Response =  response.Content.ToString();
-            }
-            else
-            {
-                fileEntry.Status = FileStatus.Failed;
-            }
-
+            fileEntry.Correction = JsonConvert.SerializeObject(response);
             // Atualiza o status do arquivo no repositório
             await _fileRepository.UpdateAsync(fileEntry);
         }
@@ -171,5 +183,13 @@ public class FileProcessingService
     public async Task<FolderStructureResponse> GetUserFoldersAndFiles(int id)
     {
         return await _fileContextRepository.GetUserFoldersAndFiles(id);
+    }
+
+    public async Task<List<string>> CreateContextExternalAPI(List<int> ids, int userId)
+    {
+        var files = await _fileContextRepository.GetFilesContextByIdsArrayAndUserId(ids, userId);
+        var filesPaths = files.Select(x => x.Content).ToList();
+
+        return await _externalApiService.UploadFilesAsync(filesPaths);
     }
 }

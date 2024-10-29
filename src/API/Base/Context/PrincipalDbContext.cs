@@ -88,6 +88,10 @@ namespace TestGeneratorAPI.src.API.Base.Context
                 .Property(fa => fa.Question);
 
             modelBuilder.Entity<FileAnswer>()
+                .Property(fa => fa.Correction)
+                .HasColumnType("nvarchar(max)");
+
+            modelBuilder.Entity<FileAnswer>()
                 .HasOne(fa => fa.User)
                 .WithMany(u => u.Files)
                 .HasForeignKey(fa => fa.UserId)

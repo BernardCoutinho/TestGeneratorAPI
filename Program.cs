@@ -19,6 +19,7 @@ using TestGeneratorAPI.src.API.Repository.FolderRepository;
 using TestGeneratorAPI.src.API.Repository.File;
 using TestGeneratorAPI.src.API.Helper;
 using TestGeneratorAPI.src.API.Config;
+using TestGeneratorAPI.src.API.Service.External;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,7 @@ builder.Services.AddScoped<FileProcessingService, FileProcessingService>();
 builder.Services.AddScoped<FileContextService, FileContextService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<FolderService, FolderService>();
+builder.Services.AddScoped<ExternalApiService, ExternalApiService>();
 
 builder.Services.AddScoped<FolderRepository, FolderRepository>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
